@@ -1,71 +1,102 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Distribuidora - Catálogo</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo Distribuidora</title>
 <style>
-body{font-family:Arial; background:#f4f4f4; margin:0; padding:15px;}
-h1{text-align:center;}
-#productos{display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:15px;}
-.card{background:white; border-radius:12px; padding:15px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
-.btn{display:block; padding:10px; margin-top:6px; border-radius:8px; text-align:center; color:white; text-decoration:none; font-weight:bold;}
+body{font-family:Arial; background:#f4f4f4; margin:0; padding:15px; padding-bottom:90px;}
+#productos{display:grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap:15px;}
+.card{background:white; border-radius:14px; padding:12px; box-shadow:0 2px 10px rgba(0,0,0,.08); display:flex; flex-direction:column;}
+.card.promo{border:2px solid #e67e22; background:#fffaf0;}
+.card img{width:100%; height:160px; object-fit:contain; background:#fff; border-radius:10px;}
+.btn{border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:6px;}
+.btn-add{background:#27ae60; color:white;}
+.btn-promo{background:#e67e22; color:white;}
+#carrito-bar{position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; z-index:999;}
+#carrito-bar button{background:#25D366; color:white; border:none; padding:12px 18px; border-radius:10px; font-weight:bold; font-size:16px;}
+.badge{background:#ff4757; color:white; padding:2px 6px; border-radius:50%; font-size:12px;}
+.qty{display:flex; justify-content:space-between; align-items:center; background:#f1f2f6; border-radius:8px; padding:5px; margin-top:6px;}
 </style>
 </head>
 <body>
-<h1>Catálogo Distribuidora</h1>
-<p style="text-align:center;" id="estado">Cargando productos...</p>
+<h1 style="text-align:center;">Catálogo Mayorista</h1>
+<p style="text-align:center;" id="estado">Cargando...</p>
 <div id="productos"></div>
+
+<div id="carrito-bar">
+  <div>🛒 <span id="carrito-count">0</span> productos - Total: $<span id="carrito-total">0</span></div>
+  <button onclick="enviarPedido()">Enviar por WhatsApp</button>
+</div>
 
 <script>
 const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
 const WHATSAPP = "549387XXXXXXX";
+let carrito = {};
 
-fetch(URL_CSV)
-.then(r => r.text())
-.then(text => {
-    console.log("CSV cargado", text.substring(0,500));
-    const filas = text.split("\n");
-    const cont = document.getElementById("productos");
-    const estado = document.getElementById("estado");
-    cont.innerHTML = "";
-    estado.innerHTML = `✅ ${filas.length} productos encontrados`;
+fetch(URL_CSV).then(r=>r.text()).then(text=>{
+  const filas = text.split("\n");
+  const cont = document.getElementById("productos");
+  cont.innerHTML = "";
+  document.getElementById("estado").innerHTML = "";
+  for(let i=1;i<filas.length;i++){
+    let c = filas[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+    if(c.length < 4) continue;
+    let nombre = c[1]?.replace(/"/g,"").trim();
+    let cant = parseInt(c[2])||0;
+    let precio = c[3]?.replace(/"/g,"").trim();
+    let uniCaja = c[4]?.replace(/"/g,"").trim();
+    let precioCaja = c[5]?.replace(/"/g,"").trim();
+    let imagen = c[6]?.replace(/"/g,"").trim() || `https://via.placeholder.com/300x200?text=${encodeURIComponent(nombre)}`;
 
-    for(let i=1; i<filas.length; i++){
-        let linea = filas[i].trim();
-        if(!linea) continue;
-        // separa por coma pero respeta comillas
-        let c = linea.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-        if(c.length < 4) continue;
+    if(!nombre || nombre.toLowerCase().includes("nombre")) continue;
+    let esPromo = nombre.toLowerCase().includes("promo") || nombre.toLowerCase().includes("oferta");
 
-        let nombre = c[1].replace(/"/g,"").trim();
-        let cant = parseInt(c[2]) || 0;
-        let precio = c[3].replace(/"/g,"").trim();
-        let uniCaja = c[4]? c[4].replace(/"/g,"").trim() : "";
-        let precioCaja = c[5]? c[5].replace(/"/g,"").trim() : "";
-
-        if(!nombre || nombre.toLowerCase().includes("nombre")) continue;
-        if(nombre.length < 2) continue;
-
-        let alerta = cant <= 0? `<b style="color:red;">❌ SIN STOCK</b>` : cant <= 10? `<b style="color:orange;">⚠️ Quedan ${cant}</b>` : `<span style="color:green;">✅ Stock: ${cant}</span>`;
-
-        let botones = cant <=0? `<button disabled style="width:100%; padding:10px; background:#ccc; border:none; border-radius:8px;">Sin Stock</button>` : `
-            <div style="background:#f9f9f9; padding:8px; border-radius:8px; font-size:14px;">
-                Unitario: $${precio} <br>
-                Fardo x${uniCaja}: $${precioCaja}
-            </div>
-            <a class="btn" style="background:#3498db;" href="https://wa.me/${WHATSAPP}?text=Quiero ${nombre} UNIDAD $${precio}" target="_blank">Comprar x Unidad</a>
-            <a class="btn" style="background:#27ae60;" href="https://wa.me/${WHATSAPP}?text=Quiero ${nombre} FARDO x${uniCaja} $${precioCaja}" target="_blank">Comprar x Fardo</a>
-            <a class="btn" style="background:#e67e22;" href="https://wa.me/${WHATSAPP}?text=Hola! Consulto promo de ${nombre}" target="_blank">Consultar Promos</a>
-        `;
-
-        cont.innerHTML += `<div class="card"><h3 style="margin:0 0 5px 0;">${nombre}</h3>${alerta}<div style="margin-top:8px;">${botones}</div></div>`;
-    }
-})
-.catch(err => {
-    document.getElementById("estado").innerHTML = "❌ Error cargando: " + err;
-    console.log(err);
+    cont.innerHTML += `
+      <div class="card ${esPromo?'promo':''}">
+        ${esPromo?'<span style="background:#e67e22;color:white;padding:3px 8px;border-radius:20px;font-size:12px;width:fit-content;">🔥 PROMO</span>':''}
+        <img src="${imagen}" onerror="this.src='https://via.placeholder.com/300?text=Sin+Foto'">
+        <h3 style="margin:8px 0 4px 0; font-size:16px;">${nombre}</h3>
+        <small style="color:#888;">Stock: ${cant} ${cant<=0?'❌ SIN STOCK': cant<=10?'⚠️ Pocas!':''}</small>
+        <div style="font-size:13px; margin:6px 0;">Unit: $${precio} | Fardo x${uniCaja}: $${precioCaja}</div>
+        ${cant>0?`
+        <div class="qty">
+          <button onclick="cambiar('${nombre}', -1, ${precio})">-</button>
+          <span id="q-${nombre}">0</span>
+          <button onclick="cambiar('${nombre}', 1, ${precio})">+</button>
+        </div>
+        <button class="btn btn-add" onclick="cambiar('${nombre}', 1, ${precio})">Agregar al carrito</button>
+        `: `<button disabled class="btn" style="background:#ccc;">Sin Stock</button>`}
+      </div>`;
+  }
 });
+
+function cambiar(nombre, delta, precio){
+  carrito[nombre] = carrito[nombre] || {qty:0, precio:parseFloat(precio)||0};
+  carrito[nombre].qty += delta;
+  if(carrito[nombre].qty <=0) delete carrito[nombre];
+  else document.getElementById(`q-${nombre}`).innerText = carrito[nombre].qty;
+  actualizarCarrito();
+}
+
+function actualizarCarrito(){
+  let total = 0, count = 0;
+  for(let k in carrito){ total += carrito[k].qty * carrito[k].precio; count += carrito[k].qty; }
+  document.getElementById("carrito-count").innerText = count;
+  document.getElementById("carrito-total").innerText = total;
+}
+
+function enviarPedido(){
+  if(Object.keys(carrito).length==0){ alert("Carrito vacío!"); return; }
+  let mensaje = "Hola! Quiero hacer este pedido:%0A%0A";
+  let total = 0;
+  for(let k in carrito){
+    let sub = carrito[k].qty * carrito[k].precio;
+    total += sub;
+    mensaje += `▪️ ${k} x${carrito[k].qty} = $${sub}%0A`;
+  }
+  mensaje += `%0A*Total estimado: $${total}*%0A%0A¿Tienen stock?`;
+  window.open(`https://wa.me/${WHATSAPP}?text=${mensaje}`, "_blank");
+}
 </script>
 </body>
 </html>
