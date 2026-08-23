@@ -1,49 +1,61 @@
 <script>
-    const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
-    const WHATSAPP = "549388XXXXXXX"; // tu número
+    const URL_CSV = "PEGA_AQUI_TU_LINK_CSV";
+    const WHATSAPP = "549388XXXXXXX"; // <-- PON TU NUMERO REAL
 
     fetch(URL_CSV)
-    .then(res => res.text())
-    .then(data => {
-        const filas = data.split("\n").slice(1);
+   .then(res => res.text())
+   .then(texto => {
+        const lineas = texto.split("\n");
         const contenedor = document.getElementById("productos");
+        contenedor.innerHTML = "";
 
-        filas.forEach(fila => {
-          const cols = fila.split(",");
-          const [numero, nombre, cant, precioUnit, uniFardo, precioFardo] = cols;
-          const stock = parseInt(cant) || 0;
-          if(!nombre) return;
+        for(let i=1; i<lineas.length; i++){
+            // Esto aguanta comas y tabulaciones
+            let col = lineas[i].split(/,|\t/);
+            if(col.length < 6) continue;
 
-          let alerta = "";
-          let botones = "";
+            let numero = col[0]?.trim();
+            let nombre = col[1]?.trim();
+            let cant = parseInt(col[2]) || 0;
+            let precio = col[3]?.trim(); // Tu columna "Precio"
+            let uniCaja = col[4]?.trim(); // Tu columna "Uni x caja/fardo"
+            let precioCaja = col[5]?.trim(); // Tu columna "Precio u. x caja/fardo"
 
-          if(stock <= 0){
-            alerta = `<p style="color:red; font-weight:bold;">❌ SIN STOCK</p>`;
-            botones = `<button disabled style="background:#ccc; padding:10px; border:none; border-radius:8px; width:100%;">Sin Stock</button>`;
-          } else {
-            if(stock <= 5) alerta = `<p style="color:orange; font-weight:bold;">⚠️ Últimas ${stock} unidades!</p>`;
+            if(!nombre || nombre.length < 3) continue;
+            if(nombre.toLowerCase().includes("verdemar") || nombre.toLowerCase().includes("artículos")) continue;
 
-            botones = `
-              <a class="btn" style="background:#3498db;" href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} por UNIDAD $${precioUnit}" target="_blank">Comprar x Unidad: $${precioUnit}</a>
-              <a class="btn" style="background:#27ae60;" href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} por FARDO x${uniFardo} $${precioFardo}" target="_blank">Comprar x Fardo x${uniFardo}: $${precioFardo}</a>
-              <a class="btn" style="background:#e67e22;" href="https://wa.me/${WHATSAPP}?text=Hola! Quiero consultar promos de ${nombre}" target="_blank">Consultar Promos</a>
+            let alertaHTML = "";
+            if(cant <= 0) alertaHTML = `<p style="color:#ff4757; font-weight:bold; margin:5px 0;">❌ SIN STOCK</p>`;
+            else if(cant <= 10) alertaHTML = `<p style="color:#ffa502; font-weight:bold; margin:5px 0;">⚠️ Últimas ${cant} unid.</p>`;
+            else alertaHTML = `<p style="color:#2ed573; font-size:12px; margin:5px 0;">✅ En stock: ${cant}</p>`;
+
+            let botonesHTML = "";
+            if(cant <= 0){
+                botonesHTML = `<button disabled style="width:100%; padding:10px; background:#ccc; border:none; border-radius:8px;">Sin Stock</button>`;
+            } else {
+                botonesHTML = `
+                    <div style="background:#f1f2f6; padding:8px; border-radius:8px; margin:5px 0;">
+                        <p style="margin:2px;">Unitario: <b>$${precio}</b></p>
+                        <p style="margin:2px;">Caja/Fardo x${uniCaja}: <b>$${precioCaja}</b></p>
+                    </div>
+                    <a href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} - Por Unidad $${precio}" target="_blank" style="display:block; background:#3498db; color:white; padding:10px; border-radius:8px; text-align:center; text-decoration:none; font-weight:bold;">Comprar x Unidad</a>
+                    <a href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} - Por Fardo x${uniCaja} $${precioCaja}" target="_blank" style="display:block; background:#27ae60; color:white; padding:10px; border-radius:8px; text-align:center; text-decoration:none; font-weight:bold; margin-top:6px;">Comprar x Fardo</a>
+                    <a href="https://wa.me/${WHATSAPP}?text=Hola! Consulto promos por ${nombre}" target="_blank" style="display:block; background:#e67e22; color:white; padding:10px; border-radius:8px; text-align:center; text-decoration:none; font-weight:bold; margin-top:6px;">Consultar Promos</a>
+                `;
+            }
+
+            contenedor.innerHTML += `
+                <div style="border:1px solid #ddd; padding:12px; border-radius:12px; background:white;">
+                    <h3 style="font-size:16px; margin:0 0 5px 0;">${nombre}</h3>
+                    <small style="color:#888;">Cod: ${numero}</small>
+                    ${alertaHTML}
+                    ${botonesHTML}
+                </div>
             `;
-          }
-
-          contenedor.innerHTML += `
-            <div class="producto">
-              <h3>${nombre}</h3>
-              ${alerta}
-              <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                ${botones}
-              </div>
-            </div>
-          `;
-        });
-      });
-  </script>
-
-<style>
-.btn { display:block; color:white; padding:10px; border-radius:8px; text-decoration:none; font-weight:bold; text-align:center; }
-.btn:hover { opacity:0.9; }
-</style>
+        }
+    })
+   .catch(e => {
+        document.getElementById("productos").innerHTML = "<p>Error: revisa que el link del Sheets esté Publicado como CSV</p>";
+        console.log(e);
+    });
+</script>
