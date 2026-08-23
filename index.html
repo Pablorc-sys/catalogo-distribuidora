@@ -1,48 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Distribuidora - Catálogo</title>
+<style>
+body{font-family:Arial; background:#f4f4f4; margin:0; padding:15px;}
+h1{text-align:center;}
+#productos{display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:15px;}
+.card{background:white; border-radius:12px; padding:15px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
+.btn{display:block; padding:10px; margin-top:6px; border-radius:8px; text-align:center; color:white; text-decoration:none; font-weight:bold;}
+</style>
+</head>
+<body>
+<h1>Catálogo Distribuidora</h1>
+<p style="text-align:center;" id="estado">Cargando productos...</p>
+<div id="productos"></div>
+
 <script>
-    const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
-    const WHATSAPP = "549387XXXXXXX"; // <--- CAMBIA TU NUMERO
+const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
+const WHATSAPP = "549387XXXXXXX";
 
-    fetch(URL_CSV)
-   .then(r => r.text())
-   .then(data => {
-        const filas = data.split("\n");
-        const contenedor = document.getElementById("productos");
-        contenedor.innerHTML = "";
+fetch(URL_CSV)
+.then(r => r.text())
+.then(text => {
+    console.log("CSV cargado", text.substring(0,500));
+    const filas = text.split("\n");
+    const cont = document.getElementById("productos");
+    const estado = document.getElementById("estado");
+    cont.innerHTML = "";
+    estado.innerHTML = `✅ ${filas.length} productos encontrados`;
 
-        for(let i=1; i<filas.length; i++){
-            if(!filas[i]) continue;
-            const c = filas[i].split(",");
-            if(c.length < 4) continue;
+    for(let i=1; i<filas.length; i++){
+        let linea = filas[i].trim();
+        if(!linea) continue;
+        // separa por coma pero respeta comillas
+        let c = linea.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+        if(c.length < 4) continue;
 
-            const nombre = c[1];
-            const cant = parseInt(c[2]) || 0;
-            const precioUnidad = c[3];
-            const uniCaja = c[4];
-            const precioCaja = c[5];
+        let nombre = c[1].replace(/"/g,"").trim();
+        let cant = parseInt(c[2]) || 0;
+        let precio = c[3].replace(/"/g,"").trim();
+        let uniCaja = c[4]? c[4].replace(/"/g,"").trim() : "";
+        let precioCaja = c[5]? c[5].replace(/"/g,"").trim() : "";
 
-            if(!nombre || nombre.trim() === "" || nombre.includes("Nombre")) continue;
+        if(!nombre || nombre.toLowerCase().includes("nombre")) continue;
+        if(nombre.length < 2) continue;
 
-            let estado = "";
-            if(cant <= 0) estado = `<span style="color:red; font-weight:bold;">❌ SIN STOCK</span>`;
-            else if(cant <= 10) estado = `<span style="color:orange; font-weight:bold;">⚠️ Quedan ${cant}</span>`;
-            else estado = `<span style="color:green;">✅ Stock: ${cant}</span>`;
+        let alerta = cant <= 0? `<b style="color:red;">❌ SIN STOCK</b>` : cant <= 10? `<b style="color:orange;">⚠️ Quedan ${cant}</b>` : `<span style="color:green;">✅ Stock: ${cant}</span>`;
 
-            let botones = "";
-            if(cant <= 0){
-                botones = `<button disabled style="width:100%; padding:10px; background:#ccc; border-radius:8px; border:none;">Sin Stock</button>`;
-            } else {
-                botones = `
-                    <div style="background:#f5f5f5; padding:8px; border-radius:8px;">
-                        <p>Por Unidad: <b>$${precioUnidad}</b></p>
-                        <p>Por Fardo x${uniCaja}: <b>$${precioCaja}</b></p>
-                    </div>
-                    <a href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} x Unidad $${precioUnidad}" target="_blank" style="display:block; background:#3498db; color:white; padding:10px; text-align:center; border-radius:8px; text-decoration:none; margin-top:6px;">Comprar x Unidad</a>
-                    <a href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} x Fardo $${precioCaja}" target="_blank" style="display:block; background:#27ae60; color:white; padding:10px; text-align:center; border-radius:8px; text-decoration:none; margin-top:6px;">Comprar x Fardo</a>
-                    <a href="https://wa.me/${WHATSAPP}?text=Hola! Consulto promos de ${nombre}" target="_blank" style="display:block; background:#e67e22; color:white; padding:10px; text-align:center; border-radius:8px; text-decoration:none; margin-top:6px;">Consultar Promos</a>
-                `;
-            }
+        let botones = cant <=0? `<button disabled style="width:100%; padding:10px; background:#ccc; border:none; border-radius:8px;">Sin Stock</button>` : `
+            <div style="background:#f9f9f9; padding:8px; border-radius:8px; font-size:14px;">
+                Unitario: $${precio} <br>
+                Fardo x${uniCaja}: $${precioCaja}
+            </div>
+            <a class="btn" style="background:#3498db;" href="https://wa.me/${WHATSAPP}?text=Quiero ${nombre} UNIDAD $${precio}" target="_blank">Comprar x Unidad</a>
+            <a class="btn" style="background:#27ae60;" href="https://wa.me/${WHATSAPP}?text=Quiero ${nombre} FARDO x${uniCaja} $${precioCaja}" target="_blank">Comprar x Fardo</a>
+            <a class="btn" style="background:#e67e22;" href="https://wa.me/${WHATSAPP}?text=Hola! Consulto promo de ${nombre}" target="_blank">Consultar Promos</a>
+        `;
 
-            contenedor.innerHTML += `<div style="border:1px solid #eee; padding:12px; border-radius:12px; background:white; box-shadow:0 2px 5px rgba(0,0,0,0.05);"><h3 style="margin:0;">${nombre}</h3>${estado}<div style="margin-top:8px;">${botones}</div></div>`;
-        }
-    });
+        cont.innerHTML += `<div class="card"><h3 style="margin:0 0 5px 0;">${nombre}</h3>${alerta}<div style="margin-top:8px;">${botones}</div></div>`;
+    }
+})
+.catch(err => {
+    document.getElementById("estado").innerHTML = "❌ Error cargando: " + err;
+    console.log(err);
+});
 </script>
+</body>
+</html>
