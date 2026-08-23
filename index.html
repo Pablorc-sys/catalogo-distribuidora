@@ -1,45 +1,49 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo Distribuidora</title>
-  <style>
-    body { font-family: Arial; background: #f2f2f2; margin: 0; padding: 20px; }
-    h1 { text-align: center; color: #333; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-    .producto { background: white; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-    .producto img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; }
-    .precio { font-size: 22px; font-weight: bold; color: #27ae60; margin: 10px 0; }
-    .btn-wsp { display: inline-block; background: #25D366; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; }
-    .btn-wsp:hover { background: #1ebe5b; }
-  </style>
-</head>
-<body>
-  <h1>Catálogo Distribuidora</h1>
-  <div class="grid">
-    
-    <div class="producto">
-      <img src="https://via.placeholder.com/300x180.png?text=Coca+500ml" alt="Coca">
-      <h3>Coca Cola 500ml</h3>
-      <p class="precio">$2500</p>
-      <a class="btn-wsp" href="https://wa.me/54387483626?text=Hola! Quiero pedir 1x Coca Cola 500ml" target="_blank">Pedir por WhatsApp</a>
-    </div>
+<script>
+    const URL_CSV = "PEGA_AQUI_EL_LINK_DE_TU_CSV_PUBLICADO";
+    const WHATSAPP = "549388XXXXXXX"; // tu número
 
-    <div class="producto">
-      <img src="https://via.placeholder.com/300x180.png?text=Agua+1.5L" alt="Agua">
-      <h3>Agua Mineral 1.5L</h3>
-      <p class="precio">$1800</p>
-      <a class="btn-wsp" href="https://wa.me/54387483626?text=Hola! Quiero pedir 1x Agua Mineral 1.5L" target="_blank">Pedir por WhatsApp</a>
-    </div>
+    fetch(URL_CSV)
+    .then(res => res.text())
+    .then(data => {
+        const filas = data.split("\n").slice(1);
+        const contenedor = document.getElementById("productos");
 
-    <div class="producto">
-      <img src="https://via.placeholder.com/300x180.png?text=Papas+Lays" alt="Papas">
-      <h3>Papas Lays Clásicas</h3>
-      <p class="precio">$3200</p>
-      <a class="btn-wsp" href="https://wa.me/54387483626?text=Hola! Quiero pedir 1x Papas Lays Clásicas" target="_blank">Pedir por WhatsApp</a>
-    </div>
+        filas.forEach(fila => {
+          const cols = fila.split(",");
+          const [numero, nombre, cant, precioUnit, uniFardo, precioFardo] = cols;
+          const stock = parseInt(cant) || 0;
+          if(!nombre) return;
 
-  </div>
-</body>
-</html>
+          let alerta = "";
+          let botones = "";
+
+          if(stock <= 0){
+            alerta = `<p style="color:red; font-weight:bold;">❌ SIN STOCK</p>`;
+            botones = `<button disabled style="background:#ccc; padding:10px; border:none; border-radius:8px; width:100%;">Sin Stock</button>`;
+          } else {
+            if(stock <= 5) alerta = `<p style="color:orange; font-weight:bold;">⚠️ Últimas ${stock} unidades!</p>`;
+
+            botones = `
+              <a class="btn" style="background:#3498db;" href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} por UNIDAD $${precioUnit}" target="_blank">Comprar x Unidad: $${precioUnit}</a>
+              <a class="btn" style="background:#27ae60;" href="https://wa.me/${WHATSAPP}?text=Hola! Quiero ${nombre} por FARDO x${uniFardo} $${precioFardo}" target="_blank">Comprar x Fardo x${uniFardo}: $${precioFardo}</a>
+              <a class="btn" style="background:#e67e22;" href="https://wa.me/${WHATSAPP}?text=Hola! Quiero consultar promos de ${nombre}" target="_blank">Consultar Promos</a>
+            `;
+          }
+
+          contenedor.innerHTML += `
+            <div class="producto">
+              <h3>${nombre}</h3>
+              ${alerta}
+              <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                ${botones}
+              </div>
+            </div>
+          `;
+        });
+      });
+  </script>
+
+<style>
+.btn { display:block; color:white; padding:10px; border-radius:8px; text-decoration:none; font-weight:bold; text-align:center; }
+.btn:hover { opacity:0.9; }
+</style>
