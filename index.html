@@ -16,10 +16,30 @@ body{font-family:Arial; background:#f4f4f4; margin:0; padding:15px; padding-bott
 #carrito-bar button{background:#25D366; color:white; border:none; padding:12px 18px; border-radius:10px; font-weight:bold; font-size:16px;}
 .badge{background:#ff4757; color:white; padding:2px 6px; border-radius:50%; font-size:12px;}
 .qty{display:flex; justify-content:space-between; align-items:center; background:#f1f2f6; border-radius:8px; padding:5px; margin-top:6px;}
+ #carousel-marcas::-webkit-scrollbar { display: none; }
+.marca-btn {
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 20px;
+  padding: 8px 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  font-weight: bold;
+  color: #333;
+}
+.marca-btn:hover, .marca-btn.activo {
+  background: #111;
+  color: white;
+  border-color: #111;
+}
 </style>
 </head>
 <body>
 <h1 style="text-align:center;">Catálogo Mayorista</h1>
+  <!-- Carrusel de marcas -->
+<div id="carousel-marcas" style="display:flex; gap:10px; overflow-x:auto; padding:10px 0; margin-bottom:15px;">
+  <!-- Los botones de marca se generarán dinámicamente con JavaScript -->
+</div>
 <p style="text-align:center;" id="estado">Cargando...</p>
 <div id="productos"></div>
 
@@ -30,62 +50,141 @@ body{font-family:Arial; background:#f4f4f4; margin:0; padding:15px; padding-bott
 
 <script>
 const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
-const WHATSAPP = "549387XXXXXXX";
+const WHATSAPP = "5493874836526";
 let carrito = {};
+
+let todosLosProductos = [];
+let marcaActual = null;
 
 fetch(URL_CSV).then(r=>r.text()).then(text=>{
   const filas = text.split("\n");
-  const cont = document.getElementById("productos");
-  cont.innerHTML = "";
-  document.getElementById("estado").innerHTML = "";
-  for(let i=1;i<filas.length;i++){
-    let c = filas[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+  todosLosProductos = [];
+  
+  for(let i=1; i<filas.length; i++){
+    let c = filas[i].split(/,(?=(?:(?:[^"]"){2})[^"]*$)/);
     if(c.length < 4) continue;
+    
+    let marca = c[0]?.replace(/"/g,"").trim() || "Otras";
     let nombre = c[1]?.replace(/"/g,"").trim();
     let cant = parseInt(c[2])||0;
     let precio = c[3]?.replace(/"/g,"").trim();
     let uniCaja = c[4]?.replace(/"/g,"").trim();
     let precioCaja = c[5]?.replace(/"/g,"").trim();
-    let imagen = c[6]?.replace(/"/g,"").trim() || `https://via.placeholder.com/300x200?text=${encodeURIComponent(nombre)}`;
-
+    let imagen = c[6]?.replace(/"/g,"").trim() || https://via.placeholder.com/300x200?text=${encodeURIComponent(nombre)};
+    
     if(!nombre || nombre.toLowerCase().includes("nombre")) continue;
-    let esPromo = nombre.toLowerCase().includes("promo") || nombre.toLowerCase().includes("oferta");
+    
+    todosLosProductos.push({ marca, nombre, cant, precio, uniCaja, precioCaja, imagen });
+  }
+  
+  // Extraer marcas únicas
+  const marcasUnicas = [...new Set(todosLosProductos.map(p => p.marca))].filter(m => m && m !== "Otras");
+  
+  // Generar botones de marca
+  const carousel = document.getElementById("carousel-marcas");
+  carousel.innerHTML = <button class="marca-btn activo" onclick="filtrarPorMarca('todas')">Todas</button>;
+  marcasUnicas.forEach(m => {
+    carousel.innerHTML += <button class="marca-btn" onclick="filtrarPorMarca('${m}')">${m}</button>;
+  });
+  
+  renderizarProductos(todosLosProductos);
+  document.getElementById("estado").innerHTML = "";
+});
 
+  function renderizarProductos(productos){
+  const cont = document.getElementById("productos");
+  cont.innerHTML = "";
+  
+  if(productos.length === 0){
+    cont.innerHTML = "<p>No hay productos en esta marca.</p>";
+    return;
+  }
+  
+  productos.forEach(p => {
+    let esPromo = p.nombre.toLowerCase().includes("promo") || p.nombre.toLowerCase().includes("oferta");
+    
     cont.innerHTML += `
       <div class="card ${esPromo?'promo':''}">
         ${esPromo?'<span style="background:#e67e22;color:white;padding:3px 8px;border-radius:20px;font-size:12px;width:fit-content;">🔥 PROMO</span>':''}
-        <img src="${imagen}" onerror="this.src='https://via.placeholder.com/300?text=Sin+Foto'">
-        <h3 style="margin:8px 0 4px 0; font-size:16px;">${nombre}</h3>
-        <small style="color:#888;">Stock: ${cant} ${cant<=0?'❌ SIN STOCK': cant<=10?'⚠️ Pocas!':''}</small>
-        <div style="font-size:13px; margin:6px 0;">Unit: $${precio} | Fardo x${uniCaja}: $${precioCaja}</div>
-        ${cant>0?`
+        <img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/300?text=Sin+Foto'">
+        <h3 style="margin:8px 0 4px 0; font-size:16px;">${p.nombre}</h3>
+        <small style="color:#888;">Stock: ${p.cant} ${p.cant<=0?'❌ SIN STOCK': p.cant<=10?'⚠️ Pocas!':''}</small>
+        <div style="font-size:13px; margin:6px 0;">Unit: $${p.precio} | Fardo x${p.uniCaja}: $${p.precioCaja}</div>
+        ${p.cant>0?`
         <div class="qty">
-          <button onclick="cambiar('${nombre}', -1, ${precio})">-</button>
-          <span id="q-${nombre}">0</span>
-          <button onclick="cambiar('${nombre}', 1, ${precio})">+</button>
+          <button onclick="cambiar('${p.nombre}', -1, ${p.precio})">-</button>
+          <span id="q-${p.nombre}">0</span>
+          <button onclick="cambiar('${p.nombre}', 1, ${p.precio})">+</button>
         </div>
-        <button class="btn btn-add" onclick="cambiar('${nombre}', 1, ${precio})">Agregar al carrito</button>
-        `: `<button disabled class="btn" style="background:#ccc;">Sin Stock</button>`}
+        <button class="btn btn-add" onclick="cambiar('${p.nombre}', 1, ${p.precio})">Agregar al carrito</button>
+        : `<button disabled class="btn" style="background:#ccc;">Sin Stock</button>}
       </div>`;
-  }
-});
+  });
+}
+
+function filtrarPorMarca(marca){
+  marcaActual = marca;
+  
+  // Actualizar botones activos
+  document.querySelectorAll('.marca-btn').forEach(btn => {
+    btn.classList.toggle('activo', btn.textContent.trim() === (marca === 'todas' ? 'Todas' : marca));
+  });
+  
+  const filtrados = marca === 'todas' 
+    ? todosLosProductos 
+    : todosLosProductos.filter(p => p.marca === marca);
+  
+  renderizarProductos(filtrados);
+}
 
 function cambiar(nombre, delta, precio){
   carrito[nombre] = carrito[nombre] || {qty:0, precio:parseFloat(precio)||0};
   carrito[nombre].qty += delta;
   if(carrito[nombre].qty <=0) delete carrito[nombre];
-  else document.getElementById(`q-${nombre}`).innerText = carrito[nombre].qty;
-  actualizarCarrito();
+  
+  // Actualizar el contador en la tarjeta si existe
+  const span = document.getElementById(q-${nombre});
+  if(span) span.innerText = carrito[nombre]?.qty || 0;
+  
+  // Actualizar la barra del carrito
+  actualizarBarraCarrito();
 }
 
-function actualizarCarrito(){
-  let total = 0, count = 0;
-  for(let k in carrito){ total += carrito[k].qty * carrito[k].precio; count += carrito[k].qty; }
-  document.getElementById("carrito-count").innerText = count;
-  document.getElementById("carrito-total").innerText = total;
+function actualizarBarraCarrito(){
+  let totalItems = 0;
+  let totalPrecio = 0;
+  for(const nombre in carrito){
+    totalItems += carrito[nombre].qty;
+    totalPrecio += carrito[nombre].qty * carrito[nombre].precio;
+  }
+  document.getElementById("carrito-count").innerText = totalItems;
+  document.getElementById("carrito-total").innerText = totalPrecio.toLocaleString('es-AR');
 }
-
+  
 function enviarPedido(){
+  if(Object.keys(carrito).length === 0){
+    alert("El carrito está vacío");
+    return;
+  }
+  
+  let mensaje = "PEDIDO - Catálogo Distribuidora%0A";
+  mensaje += Fecha: ${new Date().toLocaleDateString('es-AR')}%0A%0A;
+  
+  let total = 0;
+  for(const nombre in carrito){
+    const item = carrito[nombre];
+    const subtotal = item.qty * item.precio;
+    total += subtotal;
+    mensaje += • ${item.qty}x ${nombre} - $${item.precio.toLocaleString('es-AR')} c/u = $${subtotal.toLocaleString('es-AR')}%0A;
+  }
+  
+  mensaje += %0A*TOTAL: $${total.toLocaleString('es-AR')}*;
+  
+  // Reemplaza TU_NUMERO por tu número real (ej: 5493871234567)
+  const url = https:wa.me/5493874836526?text=${mensaje};
+  window.open(url, '_blank');
+}
+/*function enviarPedido(){
   if(Object.keys(carrito).length==0){ alert("Carrito vacío!"); return; }
   let mensaje = "Hola! Quiero hacer este pedido:%0A%0A";
   let total = 0;
@@ -96,7 +195,7 @@ function enviarPedido(){
   }
   mensaje += `%0A*Total estimado: $${total}*%0A%0A¿Tienen stock?`;
   window.open(`https://wa.me/${WHATSAPP}?text=${mensaje}`, "_blank");
-}
+}*/
 </script>
 </body>
 </html>
