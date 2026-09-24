@@ -179,8 +179,7 @@ function enviarPedido(){
   }
   
   mensaje += %0A*TOTAL: $${total.toLocaleString('es-AR')}*;
-  
-  // Reemplaza TU_NUMERO por tu número real (ej: 5493871234567)
+ 
   const url = https:wa.me/5493874836526?text=${mensaje};
   window.open(url, '_blank');
 }
