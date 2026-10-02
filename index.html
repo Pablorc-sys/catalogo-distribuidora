@@ -238,7 +238,7 @@ function enviarPedido() {
 
   mensaje += `%0A*TOTAL: $${formatoPrecio(total)}*`;
 
-  const url = https:`//wa.me/5493874836526?text=${mensaje}`;
+  const url = `https://wa.me/5493874836526?text=${mensaje}`;
   window.open(url, '_blank');
 }
 /*function enviarPedido(){
