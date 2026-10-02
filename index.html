@@ -97,7 +97,7 @@ fetch(URL_CSV)
       const precio  = parseFloat(c[4]) || 0;
       const uniCaja = parseInt(c[5]) || 1;
       const precioCaja = parseFloat(c[6]) || precio;
-      const imagen  = limpiar(c[7]) || https:`//placehold.co/300x200?text=${encodeURIComponent(nombre.slice(0,20))}`;
+      const imagen  = limpiar(c[7]) || `https://placehold.co/300x200?text=${encodeURIComponent(nombre.slice(0,20))}`;
 
       if (!nombre || nombre.toLowerCase() === "nombre") continue;
       if (cant < 0) cant = 0; // stocks negativos = sin stock
