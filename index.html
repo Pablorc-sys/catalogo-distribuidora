@@ -97,7 +97,7 @@ fetch(URL_CSV)
       const precio  = parseFloat(c[4]) || 0;
       const uniCaja = parseInt(c[5]) || 1;
       const precioCaja = parseFloat(c[6]) || precio;
-      const imagen  = limpiar(c[7]) || https://placehold.co/300x200?text=${encodeURIComponent(nombre.slice(0,20))};
+      const imagen  = limpiar(c[7]) || https:`//placehold.co/300x200?text=${encodeURIComponent(nombre.slice(0,20))}`;
 
       if (!nombre || nombre.toLowerCase() === "nombre") continue;
       if (cant < 0) cant = 0; // stocks negativos = sin stock
@@ -111,10 +111,10 @@ fetch(URL_CSV)
     const marcasUnicas = [...new Set(todosLosProductos.map(p => p.marca))].sort();
     const carousel = document.getElementById("carousel-marcas");
     if (carousel) {
-      carousel.innerHTML = <button class="marca-btn activo" onclick="filtrarPorMarca('todas')">Todas (${todosLosProductos.length})</button>;
+      carousel.innerHTML = `<button class="marca-btn activo" onclick="filtrarPorMarca('todas')">Todas (${todosLosProductos.length})</button>`;
       marcasUnicas.forEach(m => {
         const count = todosLosProductos.filter(p => p.marca === m).length;
-        carousel.innerHTML += <button class="marca-btn" onclick="filtrarPorMarca('${m.replace(/'/g, "\\'")}')">${m} (${count})</button>;
+        carousel.innerHTML += `<button class="marca-btn" onclick="filtrarPorMarca('${m.replace(/'/g, "\\'")}')">${m} (${count})</button>`;
       });
     }
 
@@ -160,7 +160,7 @@ function renderizarProductos(productos) {
         </small>
         <div class="precios">
           <div><b>Unitario:</b> $${formatoPrecio(p.precio)}</div>
-          ${p.uniCaja > 1 ? <div><b>Fardo x${p.uniCaja}:</b> $${formatoPrecio(p.precioCaja)} c/u ${descuentoFardo?'<span style="color:#25D366;">(-10%)</span>':''}</div> : ''}
+          ${p.uniCaja > 1 ? `<div><b>Fardo x${p.uniCaja}:</b> $${formatoPrecio(p.precioCaja)} c/u ${descuentoFardo?'<span style="color:#25D366;">(-10%)</span>':''}</div>` : ''}
         </div>
         ${!sinStock ? `
           <div class="qty">
@@ -169,7 +169,7 @@ function renderizarProductos(productos) {
             <button onclick="cambiar('${p.nombre.replace(/'/g,"\\'")}', 1, ${p.precio})">+</button>
           </div>
           <button class="btn btn-add" onclick="cambiar('${p.nombre.replace(/'/g,"\\'")}', 1, ${p.precio})">Agregar</button>
-        ` : <button disabled class="btn-sin-stock">Sin Stock</button>}
+        ` : `<button disabled class="btn-sin-stock">Sin Stock</button>`}
       </div>`;
   });
 }
@@ -200,7 +200,7 @@ function cambiar(nombre, delta, precio) {
   // Actualizar todos los contadores visibles con ese nombre
   const producto = todosLosProductos.find(p => p.nombre === nombre);
   if (producto) {
-    const span = document.getElementById(q-${producto.numero});
+    const span = document.getElementById(`q-${producto.numero}`);
     if (span) span.innerText = carrito[nombre]?.qty || 0;
   }
 
@@ -226,19 +226,19 @@ function enviarPedido() {
   }
 
   let mensaje = "PEDIDO - Catálogo Distribuidora%0A";
-  mensaje += Fecha: ${new Date().toLocaleDateString('es-AR')}%0A%0A;
+  mensaje += `Fecha: ${new Date().toLocaleDateString('es-AR')}%0A%0A`;
 
   let total = 0;
   for (const nombre in carrito) {
     const item = carrito[nombre];
     const subtotal = item.qty * item.precio;
     total += subtotal;
-    mensaje += • ${item.qty}x ${nombre} = $${formatoPrecio(subtotal)}%0A;
+    mensaje += `• ${item.qty}x ${nombre} = $${formatoPrecio(subtotal)}%0A`;
   }
 
-  mensaje += %0A*TOTAL: $${formatoPrecio(total)}*;
+  mensaje += `%0A*TOTAL: $${formatoPrecio(total)}*`;
 
-  const url = https:/wa.me/5493874836526?text=${mensaje};
+  const url = https:`//wa.me/5493874836526?text=${mensaje}`;
   window.open(url, '_blank');
 }
 /*function enviarPedido(){
