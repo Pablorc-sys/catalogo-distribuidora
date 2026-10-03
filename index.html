@@ -1,258 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catálogo Distribuidora</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo Distribuidora - Salta</title>
 <style>
-body{font-family:Arial; background:#f4f4f4; margin:0; padding:15px; padding-bottom:90px;}
-#productos{display:grid; grid-template-columns: repeat(auto-fill, minmax(230px,1fr)); gap:15px;}
-.card{background:white; border-radius:14px; padding:12px; box-shadow:0 2px 10px rgba(0,0,0,.08); display:flex; flex-direction:column;}
-.card.promo{border:2px solid #e67e22; background:#fffaf0;}
-.card img{width:100%; height:160px; object-fit:contain; background:#fff; border-radius:10px;}
-.btn{border:none; padding:10px; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-top:6px;}
-.btn-add{background:#27ae60; color:white;}
-.btn-promo{background:#e67e22; color:white;}
-#carrito-bar{position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:12px 15px; display:flex; justify-content:space-between; align-items:center; z-index:999;}
-#carrito-bar button{background:#25D366; color:white; border:none; padding:12px 18px; border-radius:10px; font-weight:bold; font-size:16px;}
-.badge{background:#ff4757; color:white; padding:2px 6px; border-radius:50%; font-size:12px;}
-.qty{display:flex; justify-content:space-between; align-items:center; background:#f1f2f6; border-radius:8px; padding:5px; margin-top:6px;}
-#carousel-marcas::-webkit-scrollbar { display: none; }
-#carousel-marcas {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 10px 0;
-  margin-bottom: 15px;
-  scrollbar-width: none;
-}
-.marca-btn {
-  background: white;
-  border: 2px solid #ddd;
-  border-radius: 20px;
-  padding: 8px 14px;
-  white-space: nowrap;
-  cursor: pointer;
-  font-weight: 600;
-  font-size: 14px;
-  color: #333;
-  transition: all 0.2s;
-}
-.marca-btn:hover, .marca-btn.activo {
-  background: #111;
-  color: white;
-  border-color: #111;
-}
-.badge-promo {
-  background: #e67e22; color: white; padding: 3px 8px;
-  border-radius: 20px; font-size: 12px; width: fit-content;
-}
-.stock.sin { color: #c0392b; font-weight: bold; }
-.stock.pocas { color: #e67e22; font-weight: bold; }
-.precios { font-size: 13px; margin: 6px 0; }
-.qty { display: flex; align-items: center; gap: 8px; margin: 6px 0; justify-content: center; }
-.qty button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid #ccc; background: white; cursor: pointer; font-weight: bold; }
-.qty span { min-width: 24px; text-align: center; font-weight: bold; }
-.btn-add { width: 100%; padding: 8px; background: #25D366; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-.btn-sin-stock { width: 100%; padding: 8px; background: #ccc; color: white; border: none; border-radius: 8px; }
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui;}
+body{background:#f5f5f7;color:#111;padding-bottom:100px;}
+header{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid #eee;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+#carousel-marcas{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;white-space:nowrap;}
+.marca-btn{border:1px solid #ddd;background:white;padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;flex-shrink:0;}
+.marca-btn.activo{background:#111;color:white;}
+#productos{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px;}
+.card{background:white;border-radius:14px;padding:12px;border:1px solid #eee;display:flex;flex-direction:column;gap:6px;position:relative;}
+.card img{width:100%;height:110px;object-fit:contain;background:#fafafa;border-radius:10px;}
+.qty{display:flex;align-items:center;justify-content:space-between;background:#f2f2f2;border-radius:10px;padding:4px;margin-top:6px;}
+.qty button{border:none;background:white;width:28px;height:28px;border-radius:8px;font-weight:bold;}
+.btn{border:none;padding:8px;border-radius:10px;font-weight:bold;cursor:pointer;margin-top:6px;width:100%;font-size:12px;}
+.btn-add{background:#111;color:white;}.btn-fardo{background:white;border:1px solid #111;}.btn-promo{background:#ffcc00;}.btn-sin-stock{background:#eee;color:#888;}
+#carrito-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:500;}
+#carrito-bar button{background:#25D366;color:white;border:none;padding:10px 18px;border-radius:12px;font-weight:bold;}
+#modal-datos{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
+#modal-datos.box{background:white;padding:20px;border-radius:16px;width:100%;max-width:380px;}
+#modal-datos input{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:10px;}
+.badge-promo{position:absolute;top:8px;left:8px;background:#ff3b30;color:white;font-size:10px;padding:3px 7px;border-radius:10px;font-weight:bold;}
 </style>
 </head>
 <body>
-<h1 style="text-align:center;">Catálogo Mayorista</h1>
-  <!-- Carrusel de marcas -->
-<div id="carousel-marcas" style="display:flex; gap:10px; overflow-x:auto; padding:10px 0; margin-bottom:15px;">
-  <!-- Los botones de marca se generarán dinámicamente con JavaScript -->
-</div>
-<p style="text-align:center;" id="estado">Cargando...</p>
+<header><h1>📦 Catálogo</h1></header>
+<div id="carousel-marcas"></div>
+<div id="estado" style="text-align:center;padding:12px;">Cargando...</div>
 <div id="productos"></div>
-
-<div id="carrito-bar">
-  <div>🛒 <span id="carrito-count">0</span> productos - Total: $<span id="carrito-total">0</span></div>
-  <button onclick="enviarPedido()">Enviar por WhatsApp</button>
-</div>
-
+<div id="carrito-bar"><div>🛒 <span id="carrito-count">0</span> | $<span id="carrito-total">0</span></div><button onclick="enviarPedido()">Pedir</button></div>
+<div id="modal-datos"><div class="box">
+<h3>Datos entrega</h3>
+<input id="cli-nombre" placeholder="Nombre / Comercio *">
+<input id="cli-dire" placeholder="Dirección *">
+<input id="cli-nota" placeholder="Nota vendedor (opcional)">
+<button onclick="confirmarEnvio()" style="width:100%;background:#111;color:white;padding:12px;border:none;border-radius:12px;font-weight:bold;margin-top:10px;">Enviar por WhatsApp</button>
+<button onclick="document.getElementById('modal-datos').style.display='none'" style="width:100%;background:#eee;padding:10px;border:none;border-radius:12px;margin-top:8px;">Cancelar</button>
+</div></div>
 <script>
-const URL_CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
-const WHATSAPP = "5493874836526";
-
-let todosLosProductos = [];
-let marcaActual = "todas";
-const carrito = {};
-
-fetch(URL_CSV)
-  .then(r => r.text())
-  .then(text => {
-    const filas = text.split("\n");
-    todosLosProductos = [];
-
-    for (let i = 1; i < filas.length; i++) {
-      const c = filas[i].split(/,(?=(?:(?:[^"]"){2})[^"]*$)/);
-      if (c.length < 7) continue;
-
-      const limpiar = (v) => (v || "").replace(/"/g, "").trim();
-
-      let marca   = limpiar(c[0]) || "Otros";
-      const numero  = limpiar(c[1]);
-      const nombre  = limpiar(c[2]);
-      let cant    = parseInt(c[3]) || 0;
-      const precio  = parseFloat(c[4]) || 0;
-      const uniCaja = parseInt(c[5]) || 1;
-      const precioCaja = parseFloat(c[6]) || precio;
-      const imagen  = limpiar(c[7]) || `https://placehold.co/300x200?text=${encodeURIComponent(nombre.slice(0,20))}`;
-
-      if (!nombre || nombre.toLowerCase() === "nombre") continue;
-      if (cant < 0) cant = 0; // stocks negativos = sin stock
-
-      todosLosProductos.push({
-        marca, numero, nombre, cant, precio, uniCaja, precioCaja, imagen
-      });
-    }
-
-    // Generar botones de marca en el carrusel
-    const marcasUnicas = [...new Set(todosLosProductos.map(p => p.marca))].sort();
-    const carousel = document.getElementById("carousel-marcas");
-    if (carousel) {
-      carousel.innerHTML = `<button class="marca-btn activo" onclick="filtrarPorMarca('todas')">Todas (${todosLosProductos.length})</button>`;
-      marcasUnicas.forEach(m => {
-        const count = todosLosProductos.filter(p => p.marca === m).length;
-        carousel.innerHTML += `<button class="marca-btn" onclick="filtrarPorMarca('${m.replace(/'/g, "\\'")}')">${m} (${count})</button>`;
-      });
-    }
-
-    renderizarProductos(todosLosProductos);
-    const estado = document.getElementById("estado");
-    if (estado) estado.innerHTML = "";
-  })
-  .catch(err => {
-    console.error("Error al leer CSV:", err);
-    const estado = document.getElementById("estado");
-    if (estado) estado.innerHTML = "Error al cargar productos.";
-  });
-
-  function formatoPrecio(n) {
-  return n.toLocaleString('es-AR', { maximumFractionDigits: 0 });
-}
-
-function renderizarProductos(productos) {
-  const cont = document.getElementById("productos");
-  if (!cont) return;
-  cont.innerHTML = "";
-
-  if (productos.length === 0) {
-    cont.innerHTML = "<p style='text-align:center;padding:20px;'>No hay productos en esta marca.</p>";
-    return;
-  }
-
-  productos.forEach(p => {
-    const esPromo = /promo|oferta/i.test(p.nombre);
-    const qtyActual = carrito[p.nombre]?.qty || 0;
-    const sinStock = p.cant <= 0;
-    const pocas = p.cant > 0 && p.cant <= 10;
-    const descuentoFardo = p.uniCaja > 1 && p.precioCaja < p.precio;
-
-    cont.innerHTML += `
-      <div class="card ${esPromo ? 'promo' : ''}">
-        ${esPromo ? '<span class="badge-promo">🔥 PROMO</span>' : ''}
-        <img src="${p.imagen}" onerror="this.src='https://placehold.co/300?text=Sin+Foto'">
-        <small style="color:#888;">Cod. ${p.numero}</small>
-        <h3>${p.nombre}</h3>
-        <small class="stock ${sinStock?'sin': pocas?'pocas':''}">
-          Stock: ${p.cant} ${sinStock?'❌ SIN STOCK': pocas?'⚠️ Pocas!':''}
-        </small>
-        <div class="precios">
-          <div><b>Unitario:</b> $${formatoPrecio(p.precio)}</div>
-          ${p.uniCaja > 1 ? `<div><b>Fardo x${p.uniCaja}:</b> $${formatoPrecio(p.precioCaja)} c/u ${descuentoFardo?'<span style="color:#25D366;">(-10%)</span>':''}</div>` : ''}
-        </div>
-        ${!sinStock ? `
-          <div class="qty">
-            <button onclick="cambiar('${p.nombre.replace(/'/g,"\\'")}', -1, ${p.precio})">-</button>
-            <span id="q-${p.numero}">${qtyActual}</span>
-            <button onclick="cambiar('${p.nombre.replace(/'/g,"\\'")}', 1, ${p.precio})">+</button>
-          </div>
-          <button class="btn btn-add" onclick="cambiar('${p.nombre.replace(/'/g,"\\'")}', 1, ${p.precio})">Agregar</button>
-        ` : `<button disabled class="btn-sin-stock">Sin Stock</button>`}
-      </div>`;
-  });
-}
-
-function filtrarPorMarca(marca) {
-  marcaActual = marca;
-
-  document.querySelectorAll('.marca-btn').forEach(btn => {
-    const texto = btn.textContent.trim();
-    const activo = (marca === 'todas' && texto.startsWith('Todas'))
-                || texto.startsWith(marca + ' ');
-    btn.classList.toggle('activo', activo);
-  });
-
-  const filtrados = marca === 'todas'
-    ? todosLosProductos
-    : todosLosProductos.filter(p => p.marca === marca);
-
-  renderizarProductos(filtrados);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function cambiar(nombre, delta, precio) {
-  carrito[nombre] = carrito[nombre] || { qty: 0, precio: parseFloat(precio) || 0 };
-  carrito[nombre].qty += delta;
-  if (carrito[nombre].qty <= 0) delete carrito[nombre];
-
-  // Actualizar todos los contadores visibles con ese nombre
-  const producto = todosLosProductos.find(p => p.nombre === nombre);
-  if (producto) {
-    const span = document.getElementById(`q-${producto.numero}`);
-    if (span) span.innerText = carrito[nombre]?.qty || 0;
-  }
-
-  actualizarBarraCarrito();
-}
-
-function actualizarBarraCarrito() {
-  let totalItems = 0, totalPrecio = 0;
-  for (const nombre in carrito) {
-    totalItems += carrito[nombre].qty;
-    totalPrecio += carrito[nombre].qty * carrito[nombre].precio;
-  }
-  const countEl = document.getElementById("carrito-count");
-  const totalEl = document.getElementById("carrito-total");
-  if (countEl) countEl.innerText = totalItems;
-  if (totalEl) totalEl.innerText = formatoPrecio(totalPrecio);
-}
-  
-function enviarPedido() {
-  if (Object.keys(carrito).length === 0) {
-    alert("El carrito está vacío");
-    return;
-  }
-
-  let mensaje = "PEDIDO - Catálogo Distribuidora%0A";
-  mensaje += `Fecha: ${new Date().toLocaleDateString('es-AR')}%0A%0A`;
-
-  let total = 0;
-  for (const nombre in carrito) {
-    const item = carrito[nombre];
-    const subtotal = item.qty * item.precio;
-    total += subtotal;
-    mensaje += `• ${item.qty}x ${nombre} = $${formatoPrecio(subtotal)}%0A`;
-  }
-
-  mensaje += `%0A*TOTAL: $${formatoPrecio(total)}*`;
-
-  const url = `https://wa.me/5493874836526?text=${mensaje}`;
-  window.open(url, '_blank');
-}
-/*function enviarPedido(){
-  if(Object.keys(carrito).length==0){ alert("Carrito vacío!"); return; }
-  let mensaje = "Hola! Quiero hacer este pedido:%0A%0A";
-  let total = 0;
-  for(let k in carrito){
-    let sub = carrito[k].qty * carrito[k].precio;
-    total += sub;
-    mensaje += `▪️ ${k} x${carrito[k].qty} = $${sub}%0A`;
-  }
-  mensaje += `%0A*Total estimado: $${total}*%0A%0A¿Tienen stock?`;
-  window.open(`https://wa.me/${WHATSAPP}?text=${mensaje}`, "_blank");
-}*/
+const URL_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
+const WHATSAPP="5493874836526";
+let todosLosProductos=[]; const carrito={};
+function formatoPrecio(n){return Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:0});}
+function parseNum(v){if(!v)return 0; v=String(v).replace(/"/g,'').replace(/\$/g,'').trim(); if(v.includes(',')&&v.includes('.')){if(v.lastIndexOf(',')>v.lastIndexOf('.')){v=v.replace(/\./g,'').replace(',','.');}else{v=v.replace(/,/g,'');}}else if(v.includes(',')){v=v.replace(',','.');} const num=parseFloat(v); return isNaN(num)?0:num;}
+fetch(URL_CSV).then(r=>r.text()).then(text=>{
+  const filas=text.split("\n").filter(f=>f.trim()!=="");
+  const sep=text.includes(";")?";":",";
+  const rg=new RegExp(`${sep}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+  for(let i=1;i<filas.length;i++){const c=filas[i].split(rg); if(c.length<3)continue; const L=v=>(v||"").replace(/^"+|"+$/g,'').trim(); let marca=L(c[0])||"Otros",numero=L(c[1])||String(i),nombre=L(c[2]); if(!nombre||nombre.toLowerCase()==="nombre")continue; let cant=parseInt(L(c[3]))||0,precio=parseNum(c[4]),uniCaja=parseInt(L(c[5]))||1,precioCaja=parseNum(c[6])||precio,imagen=L(c[7])||`https://placehold.co/300?text=${encodeURIComponent(nombre.slice(0,15))}`,esPromo=/promo/i.test(nombre)||/promo/i.test(marca); todosLosProductos.push({marca,numero,nombre,cant,precio,uniCaja,precioCaja,imagen,esPromo});}
+  const marcas=[...new Set(todosLosProductos.map(p=>p.marca))].sort();
+  document.getElementById("carousel-marcas").innerHTML=`<button class="marca-btn activo" data-marca="todas" onclick="filtrarPorMarca('todas')">Todas (${todosLosProductos.length})</button>`+marcas.map(m=>`<button class="marca-btn" data-marca="${m}" onclick="filtrarPorMarca('${m.replace(/'/g,"\\'")}')">${m}</button>`).join("");
+  renderizarProductos(todosLosProductos); document.getElementById("estado").innerText=`${todosLosProductos.length} productos`;
+});
+function renderizarProductos(lista){const cont=document.getElementById("productos"); cont.innerHTML=""; lista.forEach(p=>{const qtyU=carrito[p.numero+'__U']?.qty||0,qtyF=carrito[p.numero+'__F']?.qty||0,qtyP=carrito[p.numero+'__P']?.qty||0; let botones=""; if(p.esPromo){botones=`<div class="qty"><button onclick="cambiar('${p.numero}','P',-1)">-</button><span id="q-${p.numero}-P">${qtyP}</span><button onclick="cambiar('${p.numero}','P',1)">+</button></div><button class="btn btn-promo" onclick="cambiar('${p.numero}','P',1)">Agregar Promo</button><small>Precio a confirmar</small>`;}else if(p.cant<=0){botones=`<button disabled class="btn btn-sin-stock">Sin Stock</button>`;}else{botones=`<div style="font-size:11px;">Unidad: $${formatoPrecio(p.precio)}</div><div class="qty"><button onclick="cambiar('${p.numero}','U',-1)">-</button><span id="q-${p.numero}-U">${qtyU}</span><button onclick="cambiar('${p.numero}','U',1)">+</button></div><button class="btn btn-add" onclick="cambiar('${p.numero}','U',1)">Unidad</button>${p.uniCaja>1?`<div style="font-size:11px;margin-top:6px;">Fardo x${p.uniCaja}: $${formatoPrecio(p.precioCaja)}</div><div class="qty"><button onclick="cambiar('${p.numero}','F',-1)">-</button><span id="q-${p.numero}-F">${qtyF}</span><button onclick="cambiar('${p.numero}','F',1)">+</button></div><button class="btn btn-fardo" onclick="cambiar('${p.numero}','F',1)">Fardo</button>`:''}`;} cont.innerHTML+=`<div class="card">${p.esPromo?'<span class="badge-promo">PROMO</span>':''}<img src="${p.imagen}" onerror="this.src='https://placehold.co/300?text=Sin+Foto'"><small>${p.marca} - ${p.numero}</small><h3>${p.nombre}</h3>${botones}</div>`;});}
+function filtrarPorMarca(m){document.querySelectorAll('.marca-btn').forEach(b=>b.classList.toggle('activo',b.dataset.marca===m)); renderizarProductos(m==='todas'?todosLosProductos:todosLosProductos.filter(p=>p.marca===m));}
+function cambiar(cod,tipo,delta){const prod=todosLosProductos.find(p=>p.numero===cod); const key=cod+'__'+tipo; const precio=tipo==='F'?prod.precioCaja:tipo==='P'?0:prod.precio; if(!carrito[key])carrito[key]={qty:0,precio,nombre:prod.nombre,tipo,uniCaja:prod.uniCaja,marca:prod.marca}; carrito[key].qty+=delta; if(carrito[key].qty<=0)delete carrito[key]; const sp=document.getElementById(`q-${cod}-${tipo}`); if(sp)sp.innerText=carrito[key]?.qty||0; actualizarBarra();}
+function actualizarBarra(){let items=0,total=0,promo=0; for(let k in carrito){items+=carrito[k].qty; if(carrito[k].tipo!=='P')total+=carrito[k].qty*carrito[k].precio; else promo+=carrito[k].qty;} document.getElementById("carrito-count").innerText=items; document.getElementById("carrito-total").innerText=formatoPrecio(total)+(promo?` + ${promo} promo`:'');}
+function enviarPedido(){if(!Object.keys(carrito).length){alert("Vacío");return;} document.getElementById('modal-datos').style.display='flex';}
+function confirmarEnvio(){const nom=document.getElementById('cli-nombre').value.trim(),dir=document.getElementById('cli-dire').value.trim(),nota=document.getElementById('cli-nota').value.trim(); if(nom.length<3||dir.length<3){alert("Nombre y dirección obligatorios");return;} let msg=`*NUEVO PEDIDO*%0ACliente: ${nom}%0ADirección: ${dir}%0A`; if(nota)msg+=`Nota: ${nota}%0A`; msg+=`%0A--- DETALLE ---%0A`; let total=0; for(let k in carrito){const it=carrito[k]; if(it.tipo==='U'){msg+=`• ${it.qty}x UNIDAD - ${it.nombre} = $${formatoPrecio(it.qty*it.precio)}%0A`; total+=it.qty*it.precio;} else if(it.tipo==='F'){msg+=`• ${it.qty}x FARDO x${it.uniCaja} - ${it.nombre} = $${formatoPrecio(it.qty*it.precio)}%0A`; total+=it.qty*it.precio;} else{msg+=`• ${it.qty}x PROMO - ${it.nombre} - A confirmar%0A`;}} msg+=`%0A*TOTAL (sin promos): $${formatoPrecio(total)}*`; document.getElementById('modal-datos').style.display='none'; window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');}
 </script>
 </body>
 </html>
