@@ -1,97 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Catálogo Distribuidora</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo Distribuidora - Salta</title>
 <style>
-body{font-family:system-ui;background:#f5f5f5;margin:0;padding:10px}
-.header{position:sticky;top:0;background:white;padding:10px;z-index:10;box-shadow:0 2px 5px rgba(0,0,0,.1);border-radius:10px}
-#buscador{width:100%;padding:12px;border-radius:20px;border:1px solid #ddd;margin-top:10px;font-size:16px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:15px}
-.card{background:white;padding:10px;border-radius:12px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.1)}
-.btn{border:none;padding:8px 10px;border-radius:20px;cursor:pointer;margin:2px}
-.btn-u{background:#25D366;color:white}.btn-f{background:#111;color:white}.btn-promo{background:#ffb100;color:black;width:100%;margin-top:5px}
-.qty{display:flex;justify-content:center;align-items:center;gap:8px;margin:5px}
-.total-box{position:fixed;bottom:0;left:0;right:0;background:#111;color:white;padding:15px;text-align:center;border-radius:20px 20px 0 0}
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui;}
+body{background:#f5f5f7;color:#111;padding-bottom:100px;}
+header{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid #eee;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+#carousel-marcas{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;white-space:nowrap;}
+.marca-btn{border:1px solid #ddd;background:white;padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;flex-shrink:0;}
+.marca-btn.activo{background:#111;color:white;}
+#productos{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;padding:16px;}
+.card{background:white;border-radius:14px;padding:12px;border:1px solid #eee;display:flex;flex-direction:column;gap:6px;position:relative;}
+.card img{width:100%;height:110px;object-fit:contain;background:#fafafa;border-radius:10px;}
+.qty{display:flex;align-items:center;justify-content:space-between;background:#f2f2f2;border-radius:10px;padding:4px;margin-top:6px;}
+.qty button{border:none;background:white;width:28px;height:28px;border-radius:8px;font-weight:bold;}
+.btn{border:none;padding:8px;border-radius:10px;font-weight:bold;cursor:pointer;margin-top:6px;width:100%;font-size:12px;}
+.btn-add{background:#111;color:white;}.btn-fardo{background:white;border:1px solid #111;}.btn-promo{background:#ffcc00;}.btn-sin-stock{background:#eee;color:#888;}
+#carrito-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:500;}
+#carrito-bar button{background:#25D366;color:white;border:none;padding:10px 18px;border-radius:12px;font-weight:bold;}
+#modal-datos{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
+#modal-datos.box{background:white;padding:20px;border-radius:16px;width:100%;max-width:380px;}
+#modal-datos input{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:10px;}
+.badge-promo{position:absolute;top:8px;left:8px;background:#ff3b30;color:white;font-size:10px;padding:3px 7px;border-radius:10px;font-weight:bold;}
 </style>
 </head>
 <body>
-<div class="header">
-<h3 style="margin:0">Catálogo 🥔</h3>
-<input type="text" id="nombre" placeholder="Tu Nombre" style="width:48%;padding:8px">
-<input type="text" id="direccion" placeholder="Dirección" style="width:48%;padding:8px">
-<input type="text" id="buscador" placeholder="🔍 Buscar producto... Ej: Coca, Papa Semix" onkeyup="filtrar()">
-</div>
-<div id="catalogo" class="grid"></div>
-<div style="height:120px"></div>
-<div class="total-box">
-<div id="resumen"></div>
-<div id="total"></div>
-<button onclick="confirmarEnvio()" style="width:100%;padding:12px;background:#25D366;border:none;border-radius:20px;color:white;font-size:18px;margin-top:8px">Enviar pedido por WhatsApp</button>
-</div>
-
+<header><h1>📦 Catálogo</h1></header>
+<div id="carousel-marcas"></div>
+<div id="estado" style="text-align:center;padding:12px;">Cargando...</div>
+<div id="productos"></div>
+<div id="carrito-bar"><div>🛒 <span id="carrito-count">0</span> | $<span id="carrito-total">0</span></div><button onclick="enviarPedido()">Pedir</button></div>
+<div id="modal-datos"><div class="box">
+<h3>Datos entrega</h3>
+<input id="cli-nombre" placeholder="Nombre / Comercio *">
+<input id="cli-dire" placeholder="Dirección *">
+<input id="cli-nota" placeholder="Nota vendedor (opcional)">
+<button onclick="confirmarEnvio()" style="width:100%;background:#111;color:white;padding:12px;border:none;border-radius:12px;font-weight:bold;margin-top:10px;">Enviar por WhatsApp</button>
+<button onclick="document.getElementById('modal-datos').style.display='none'" style="width:100%;background:#eee;padding:10px;border:none;border-radius:12px;margin-top:8px;">Cancelar</button>
+</div></div>
 <script>
-const URL_SHEETS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
-let productos = [];
-let carrito = {};
-
-async function cargar(){
-  const r = await fetch(URL_SHEETS); const t = await r.text();
-  const filas = t.split("\n").slice(1);
-  productos = filas.map(f=>{
-    const c = f.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-    return { numero:c[0]?.replace(/"/g,""), nombre:c[1]?.replace(/"/g,""), unidad:parseFloat(c[2]||0), unidadesFardo:parseFloat(c[3]||6), stock:parseFloat(c[4]||0) }
-  }).filter(p=>p.stock>0);
-  renderizar(productos);
-}
-function renderizar(lista){
-  document.getElementById("catalogo").innerHTML = lista.map(p=>{
-    const qU = carrito[p.numero+"-U"]||0; const qF = carrito[p.numero+"-F"]||0; const qP = carrito[p.numero+"-P"]||0;
-    const precioFardo = Math.round(p.unidad * p.unidadesFardo * 0.9);
-    return `<div class="card"><b>${p.nombre}</b><br><small>Stock: ${p.stock}</small><br>
-      <small>Unidad: $${p.unidad}</small><br>
-      <div class="qty"><button onclick="cambiar('${p.numero}','U',-1)">-</button><span>${qU}</span><button onclick="cambiar('${p.numero}','U',1)">+</button></div>
-      <button class="btn btn-u" onclick="cambiar('${p.numero}','U',1)">Unidad $${p.unidad}</button>
-      <div class="qty"><button onclick="cambiar('${p.numero}','F',-1)">-</button><span>${qF}</span><button onclick="cambiar('${p.numero}','F',1)">+</button></div>
-      <button class="btn btn-f" onclick="cambiar('${p.numero}','F',1)">Fardo x${p.unidadesFardo} $${precioFardo} (10% OFF)</button>
-      <div class="qty"><button onclick="cambiar('${p.numero}','P',-1)">-</button><span>${qP}</span><button onclick="cambiar('${p.numero}','P',1)">+</button></div>
-      <button class="btn btn-promo" onclick="cambiar('${p.numero}','P',1)">Agregar Promo</button><br><small style="color:#b58900;">Consultar con el vendedor</small>
-    </div>`
-  }).join("");
-  actualizarTotal();
-}
-function cambiar(num,tipo,delta){
-  const key = num+"-"+tipo; carrito[key]=(carrito[key]||0)+delta; if(carrito[key]<=0) delete carrito[key];
-  const prod = productos.find(p=>p.numero==num); renderizar(document.getElementById("buscador").value? productos.filter(p=>p.nombre.toLowerCase().includes(document.getElementById("buscador").value.toLowerCase())) : productos);
-}
-function filtrar(){
-  const txt = document.getElementById("buscador").value.toLowerCase();
-  renderizar(productos.filter(p=>p.nombre.toLowerCase().includes(txt)));
-}
-function actualizarTotal(){
-  let total=0; let resumen="";
-  for(let k in carrito){
-    const [num,tipo]=k.split("-"); const p=productos.find(x=>x.numero==num); if(!p) continue;
-    if(tipo=="U"){ total+=p.unidad*carrito[k]; resumen+=`${carrito[k]}x U ${p.nombre}<br>`}
-    if(tipo=="F"){ const pf=Math.round(p.unidad*p.unidadesFardo*0.9); total+=pf*carrito[k]; resumen+=`${carrito[k]}x FARDO ${p.nombre}<br>`}
-    if(tipo=="P"){ resumen+=`${carrito[k]}x PROMO ${p.nombre} - Consultar con vendedor<br>`}
-  }
-  document.getElementById("resumen").innerHTML=resumen;
-  document.getElementById("total").innerHTML="<b>TOTAL (sin promos): $"+total+"</b>";
-}
-function confirmarEnvio(){
-  let msg=`Hola! Soy ${document.getElementById("nombre").value} - Dir: ${document.getElementById("direccion").value}%0A%0APedido:%0A`;
-  let total=0;
-  for(let k in carrito){
-    const [num,tipo]=k.split("-"); const p=productos.find(x=>x.numero==num);
-    if(tipo=="U"){msg+=`• ${carrito[k]}x UNIDAD ${p.nombre} = $${p.unidad*carrito[k]}%0A`; total+=p.unidad*carrito[k]}
-    if(tipo=="F"){const pf=Math.round(p.unidad*p.unidadesFardo*0.9); msg+=`• ${carrito[k]}x FARDO x${p.unidadesFardo} ${p.nombre} = $${pf*carrito[k]}%0A`; total+=pf*carrito[k]}
-    if(tipo=="P"){msg+=`• ${carrito[k]}x PROMO ${p.nombre} - Consultar con el vendedor%0A`}
-  }
-  msg+=`%0A*TOTAL (sin promos): $${total}*%0A`;
-  window.open("https://wa.me/5493874836526="+msg);
-}
-cargar();
+const URL_CSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTY7KHsuN6HDxt-xp4mH52cU_iW0x9yJB043eVr9lw8tcASVJeyoMq7lwCl2J6WTM_nBQQz-PgQVxFU/pub?output=csv";
+const WHATSAPP="5493874836526";
+let todosLosProductos=[]; const carrito={};
+function formatoPrecio(n){return Number(n||0).toLocaleString('es-AR',{maximumFractionDigits:0});}
+function parseNum(v){if(!v)return 0; v=String(v).replace(/"/g,'').replace(/\$/g,'').trim(); if(v.includes(',')&&v.includes('.')){if(v.lastIndexOf(',')>v.lastIndexOf('.')){v=v.replace(/\./g,'').replace(',','.');}else{v=v.replace(/,/g,'');}}else if(v.includes(',')){v=v.replace(',','.');} const num=parseFloat(v); return isNaN(num)?0:num;}
+fetch(URL_CSV).then(r=>r.text()).then(text=>{
+  const filas=text.split("\n").filter(f=>f.trim()!=="");
+  const sep=text.includes(";")?";":",";
+  const rg=new RegExp(`${sep}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+  for(let i=1;i<filas.length;i++){const c=filas[i].split(rg); if(c.length<3)continue; const L=v=>(v||"").replace(/^"+|"+$/g,'').trim(); let marca=L(c[0])||"Otros",numero=L(c[1])||String(i),nombre=L(c[2]); if(!nombre||nombre.toLowerCase()==="nombre")continue; let cant=parseInt(L(c[3]))||0,precio=parseNum(c[4]),uniCaja=parseInt(L(c[5]))||1,precioCaja=parseNum(c[6])||precio,imagen=L(c[7])||`https://placehold.co/300?text=${encodeURIComponent(nombre.slice(0,15))}`,esPromo=/promo/i.test(nombre)||/promo/i.test(marca); todosLosProductos.push({marca,numero,nombre,cant,precio,uniCaja,precioCaja,imagen,esPromo});}
+  const marcas=[...new Set(todosLosProductos.map(p=>p.marca))].sort();
+  document.getElementById("carousel-marcas").innerHTML=`<button class="marca-btn activo" data-marca="todas" onclick="filtrarPorMarca('todas')">Todas (${todosLosProductos.length})</button>`+marcas.map(m=>`<button class="marca-btn" data-marca="${m}" onclick="filtrarPorMarca('${m.replace(/'/g,"\\'")}')">${m}</button>`).join("");
+  renderizarProductos(todosLosProductos); document.getElementById("estado").innerText=`${todosLosProductos.length} productos`;
+});
+function renderizarProductos(lista){const cont=document.getElementById("productos"); cont.innerHTML=""; lista.forEach(p=>{const qtyU=carrito[p.numero+'__U']?.qty||0,qtyF=carrito[p.numero+'__F']?.qty||0,qtyP=carrito[p.numero+'__P']?.qty||0; let botones=""; if(p.esPromo){botones=`<div class="qty"><button onclick="cambiar('${p.numero}','P',-1)">-</button><span id="q-${p.numero}-P">${qtyP}</span><button onclick="cambiar('${p.numero}','P',1)">+</button></div><button class="btn btn-promo" onclick="cambiar('${p.numero}','P',1)">Agregar Promo</button><small>Precio a confirmar</small>`;}else if(p.cant<=0){botones=`<button disabled class="btn btn-sin-stock">Sin Stock</button>`;}else{botones=`<div style="font-size:11px;">Unidad: $${formatoPrecio(p.precio)}</div><div class="qty"><button onclick="cambiar('${p.numero}','U',-1)">-</button><span id="q-${p.numero}-U">${qtyU}</span><button onclick="cambiar('${p.numero}','U',1)">+</button></div><button class="btn btn-add" onclick="cambiar('${p.numero}','U',1)">Unidad</button>${p.uniCaja>1?`<div style="font-size:11px;margin-top:6px;">Fardo x${p.uniCaja}: $${formatoPrecio(p.precioCaja)}</div><div class="qty"><button onclick="cambiar('${p.numero}','F',-1)">-</button><span id="q-${p.numero}-F">${qtyF}</span><button onclick="cambiar('${p.numero}','F',1)">+</button></div><button class="btn btn-fardo" onclick="cambiar('${p.numero}','F',1)">Fardo</button>`:''}`;} cont.innerHTML+=`<div class="card">${p.esPromo?'<span class="badge-promo">PROMO</span>':''}<img src="${p.imagen}" onerror="this.src='https://placehold.co/300?text=Sin+Foto'"><small>${p.marca} - ${p.numero}</small><h3>${p.nombre}</h3>${botones}</div>`;});}
+function filtrarPorMarca(m){document.querySelectorAll('.marca-btn').forEach(b=>b.classList.toggle('activo',b.dataset.marca===m)); renderizarProductos(m==='todas'?todosLosProductos:todosLosProductos.filter(p=>p.marca===m));}
+function cambiar(cod,tipo,delta){const prod=todosLosProductos.find(p=>p.numero===cod); const key=cod+'__'+tipo; const precio=tipo==='F'?prod.precioCaja:tipo==='P'?0:prod.precio; if(!carrito[key])carrito[key]={qty:0,precio,nombre:prod.nombre,tipo,uniCaja:prod.uniCaja,marca:prod.marca}; carrito[key].qty+=delta; if(carrito[key].qty<=0)delete carrito[key]; const sp=document.getElementById(`q-${cod}-${tipo}`); if(sp)sp.innerText=carrito[key]?.qty||0; actualizarBarra();}
+function actualizarBarra(){let items=0,total=0,promo=0; for(let k in carrito){items+=carrito[k].qty; if(carrito[k].tipo!=='P')total+=carrito[k].qty*carrito[k].precio; else promo+=carrito[k].qty;} document.getElementById("carrito-count").innerText=items; document.getElementById("carrito-total").innerText=formatoPrecio(total)+(promo?` + ${promo} promo`:'');}
+function enviarPedido(){if(!Object.keys(carrito).length){alert("Vacío");return;} document.getElementById('modal-datos').style.display='flex';}
+function confirmarEnvio(){const nom=document.getElementById('cli-nombre').value.trim(),dir=document.getElementById('cli-dire').value.trim(),nota=document.getElementById('cli-nota').value.trim(); if(nom.length<3||dir.length<3){alert("Nombre y dirección obligatorios");return;} let msg=`*NUEVO PEDIDO*%0ACliente: ${nom}%0ADirección: ${dir}%0A`; if(nota)msg+=`Nota: ${nota}%0A`; msg+=`%0A--- DETALLE ---%0A`; let total=0; for(let k in carrito){const it=carrito[k]; if(it.tipo==='U'){msg+=`• ${it.qty}x UNIDAD - ${it.nombre} = $${formatoPrecio(it.qty*it.precio)}%0A`; total+=it.qty*it.precio;} else if(it.tipo==='F'){msg+=`• ${it.qty}x FARDO x${it.uniCaja} - ${it.nombre} = $${formatoPrecio(it.qty*it.precio)}%0A`; total+=it.qty*it.precio;} else{msg+=`• ${it.qty}x PROMO - ${it.nombre} - A confirmar%0A`;}} msg+=`%0A*TOTAL (sin promos): $${formatoPrecio(total)}*`; document.getElementById('modal-datos').style.display='none'; window.open(`https://wa.me/${WHATSAPP}?text=${msg}`,'_blank');}
 </script>
 </body>
 </html>
