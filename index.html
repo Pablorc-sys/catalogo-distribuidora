@@ -22,7 +22,7 @@ header{position:sticky;top:0;z-index:100;background:white;border-bottom:1px soli
 #carrito-bar{position:fixed;bottom:0;left:0;right:0;background:#111;color:white;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;z-index:500;}
 #carrito-bar button{background:#25D366;color:white;border:none;padding:10px 18px;border-radius:12px;font-weight:bold;}
 #modal-datos{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;padding:16px;}
-#modal-datos.box{background:white;padding:20px;border-radius:16px;width:100%;max-width:380px;}
+#modal-datos .box{background:white;padding:20px;border-radius:16px;width:100%;max-width:380px;}
 #modal-datos input{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:10px;}
 .badge-promo{position:absolute;top:8px;left:8px;background:#ff3b30;color:white;font-size:10px;padding:3px 7px;border-radius:10px;font-weight:bold;}
 </style>
@@ -56,7 +56,28 @@ fetch(URL_CSV).then(r=>r.text()).then(text=>{
   document.getElementById("carousel-marcas").innerHTML=`<button class="marca-btn activo" data-marca="todas" onclick="filtrarPorMarca('todas')">Todas (${todosLosProductos.length})</button>`+marcas.map(m=>`<button class="marca-btn" data-marca="${m}" onclick="filtrarPorMarca('${m.replace(/'/g,"\\'")}')">${m}</button>`).join("");
   renderizarProductos(todosLosProductos); document.getElementById("estado").innerText=`${todosLosProductos.length} productos`;
 });
-function renderizarProductos(lista){const cont=document.getElementById("productos"); cont.innerHTML=""; lista.forEach(p=>{const qtyU=carrito[p.numero+'__U']?.qty||0,qtyF=carrito[p.numero+'__F']?.qty||0,qtyP=carrito[p.numero+'__P']?.qty||0; let botones=""; if(p.esPromo){botones=`<div class="qty"><button onclick="cambiar('${p.numero}','P',-1)">-</button><span id="q-${p.numero}-P">${qtyP}</span><button onclick="cambiar('${p.numero}','P',1)">+</button></div><button class="btn btn-promo" onclick="cambiar('${p.numero}','P',1)">Consultar con el vendedor</button>`;}else if(p.cant<=0){botones=`<button disabled class="btn btn-sin-stock">Sin Stock</button>`;}else{botones=`<div style="font-size:11px;">Unidad: $${formatoPrecio(p.precio)}</div><div class="qty"><button onclick="cambiar('${p.numero}','U',-1)">-</button><span id="q-${p.numero}-U">${qtyU}</span><button onclick="cambiar('${p.numero}','U',1)">+</button></div><button class="btn btn-add" onclick="cambiar('${p.numero}','U',1)">Unidad</button>${p.uniCaja>1?`<div style="font-size:11px;margin-top:6px;">Fardo x${p.uniCaja}: $${formatoPrecio(p.precioCaja)} <span style="color:green">10% OFF</span></div><div class="qty"><button onclick="cambiar('${p.numero}','F',-1)">-</button><span id="q-${p.numero}-F">${qtyF}</span><button onclick="cambiar('${p.numero}','F',1)">+</button></div><button class="btn btn-fardo" onclick="cambiar('${p.numero}','F',1)">Fardo x${p.uniCaja}</button>`:''}`;} cont.innerHTML+=`<div class="card">${p.esPromo?'<span class="badge-promo">PROMO</span>':''}<img src="${p.imagen}" onerror="this.src='https://placehold.co/300?text=Sin+Foto'"><small>${p.marca} - ${p.numero}</small><h3>${p.nombre}</h3>${botones}</div>`;});}
+function renderizarProductos(lista){
+  const cont=document.getElementById("productos"); cont.innerHTML="";
+  lista.forEach(p=>{
+    const qtyU=carrito[p.numero+'__U']?.qty||0,qtyF=carrito[p.numero+'__F']?.qty||0,qtyP=carrito[p.numero+'__P']?.qty||0;
+    let botones="";
+    if(p.cant<=0){
+      botones=`<button disabled class="btn btn-sin-stock">Sin Stock</button>
+      <div class="qty" style="margin-top:8px"><button onclick="cambiar('${p.numero}','P',-1)">-</button><span id="q-${p.numero}-P">${qtyP}</span><button onclick="cambiar('${p.numero}','P',1)">+</button></div>
+      <button class="btn btn-promo" onclick="cambiar('${p.numero}','P',1)">Consultar con el vendedor</button>`;
+    } else {
+      botones=`
+        <div style="font-size:11px;">Unidad: $${formatoPrecio(p.precio)}</div>
+        <div class="qty"><button onclick="cambiar('${p.numero}','U',-1)">-</button><span id="q-${p.numero}-U">${qtyU}</span><button onclick="cambiar('${p.numero}','U',1)">+</button></div>
+        <button class="btn btn-add" onclick="cambiar('${p.numero}','U',1)">Unidad</button>
+        ${p.uniCaja>1?`<div style="font-size:11px;margin-top:6px;">Fardo x${p.uniCaja}: $${formatoPrecio(p.precioCaja)} <span style="color:green">10% OFF</span></div><div class="qty"><button onclick="cambiar('${p.numero}','F',-1)">-</button><span id="q-${p.numero}-F">${qtyF}</span><button onclick="cambiar('${p.numero}','F',1)">+</button></div><button class="btn btn-fardo" onclick="cambiar('${p.numero}','F',1)">Fardo x${p.uniCaja}</button>`:''}
+        <div class="qty" style="margin-top:8px"><button onclick="cambiar('${p.numero}','P',-1)">-</button><span id="q-${p.numero}-P">${qtyP}</span><button onclick="cambiar('${p.numero}','P',1)">+</button></div>
+        <button class="btn btn-promo" onclick="cambiar('${p.numero}','P',1)">Consultar con el vendedor</button>
+      `;
+    }
+    cont.innerHTML+=`<div class="card">${p.esPromo?'<span class="badge-promo">PROMO</span>':''}<img src="${p.imagen}" onerror="this.src='https://placehold.co/300?text=Sin+Foto'"><small>${p.marca} - ${p.numero}</small><h3>${p.nombre}</h3>${botones}</div>`;
+  });
+}
 function filtrarTodo(){
   const texto = document.getElementById("buscador").value.toLowerCase();
   const marcaActiva = document.querySelector('.marca-btn.activo')?.dataset.marca || 'todas';
