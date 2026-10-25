@@ -1,0 +1,290 @@
+/* ============================================================
+   CATÁLOGO DISTRIBUIDORA - ESTILOS (styles.css)
+   ============================================================
+   Organización:
+     1. Variables (colores, radios)
+     2. Reset
+     3. Body
+     4. Header
+     5. Carrusel de marcas
+     6. Estado
+     7. Grilla de productos
+     8. Tarjeta de producto
+     9. Controles de cantidad
+    10. Botones generales
+    11. Aviso de promo
+    12. Barra del carrito
+    13. Modal de datos
+    14. Badge promo
+   ============================================================ */
+
+
+/* ---------- 1. VARIABLES ---------- */
+:root {
+  --fondo:        #f5f5f7;
+  --texto:        #111;
+  --blanco:       #ffffff;
+  --borde:        #eeeeee;
+  --gris-suave:   #f2f2f2;
+  --primario:     #111111;
+  --whatsapp:     #25D366;
+  --promo:        #ffcc00;
+  --aviso-fondo:  #fff7d6;
+  --aviso-texto:  #8a6d00;
+  --badge-rojo:   #ff3b30;
+}
+
+
+/* ---------- 2. RESET ---------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: system-ui, sans-serif;
+}
+
+
+/* ---------- 3. BODY ---------- */
+body {
+  background: var(--fondo);
+  color: var(--texto);
+  padding-bottom: 100px;   /* espacio para la barra fija del carrito */
+}
+
+
+/* ---------- 4. HEADER ---------- */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--blanco);
+  border-bottom: 1px solid var(--borde);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+header h1 {
+  font-size: 20px;
+}
+
+#buscador {
+  flex: 1;
+  max-width: 220px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+
+/* ---------- 5. CARRUSEL DE MARCAS ---------- */
+#carousel-marcas {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 12px 16px;
+  white-space: nowrap;
+}
+
+.marca-btn {
+  border: 1px solid #ddd;
+  background: var(--blanco);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.marca-btn.activo {
+  background: var(--primario);
+  color: var(--blanco);
+}
+
+
+/* ---------- 6. ESTADO ---------- */
+#estado {
+  text-align: center;
+  padding: 12px;
+}
+
+
+/* ---------- 7. GRILLA DE PRODUCTOS ---------- */
+#productos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  padding: 16px;
+}
+
+
+/* ---------- 8. TARJETA DE PRODUCTO ---------- */
+.card {
+  background: var(--blanco);
+  border-radius: 14px;
+  padding: 12px;
+  border: 1px solid var(--borde);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.card img {
+  width: 100%;
+  height: 110px;
+  object-fit: contain;
+  background: #fafafa;
+  border-radius: 10px;
+}
+
+.card small {
+  color: #666;
+  font-size: 11px;
+}
+
+.card h3 {
+  font-size: 15px;
+}
+
+
+/* ---------- 9. CONTROLES DE CANTIDAD ---------- */
+.qty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--gris-suave);
+  border-radius: 10px;
+  padding: 4px;
+  margin-top: 6px;
+}
+
+.qty button {
+  border: none;
+  background: var(--blanco);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+/* ---------- 10. BOTONES GENERALES ---------- */
+.btn {
+  border: none;
+  padding: 8px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 6px;
+  width: 100%;
+  font-size: 12px;
+}
+
+.btn-add       { background: var(--primario);  color: var(--blanco); }
+.btn-fardo     { background: var(--blanco);    border: 1px solid var(--primario); }
+.btn-promo     { background: var(--promo); }
+.btn-sin-stock { background: var(--gris-suave); color: #888; cursor: not-allowed; }
+
+
+/* ---------- 11. AVISO DE PROMO ---------- */
+.aviso-promo {
+  font-size: 10px;
+  color: var(--aviso-texto);
+  background: var(--aviso-fondo);
+  padding: 4px 6px;
+  border-radius: 6px;
+  margin-top: 6px;
+  text-align: center;
+}
+
+
+/* ---------- 12. BARRA DEL CARRITO ---------- */
+#carrito-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--primario);
+  color: var(--blanco);
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 500;
+}
+
+#carrito-bar button {
+  background: var(--whatsapp);
+  color: var(--blanco);
+  border: none;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+
+/* ---------- 13. MODAL DE DATOS ---------- */
+#modal-datos {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+#modal-datos.abierto {
+  display: flex;
+}
+
+#modal-datos .box {
+  background: var(--blanco);
+  padding: 20px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 380px;
+}
+
+#modal-datos input {
+  width: 100%;
+  padding: 12px;
+  margin: 6px 0;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+}
+
+.modal-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.modal-btn-primario   { background: var(--primario); color: var(--blanco); }
+.modal-btn-secundario { background: var(--gris-suave); }
+
+
+/* ---------- 14. BADGE PROMO ---------- */
+.badge-promo {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: var(--badge-rojo);
+  color: var(--blanco);
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 10px;
+  font-weight: bold;
+  z-index: 1;
+}
